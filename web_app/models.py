@@ -78,3 +78,24 @@ class Simulation(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.user})"
+
+
+# -------------------------
+# CurrentPrice (one-to-one with Coin)
+# -------------------------
+class CurrentPrice(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    coin = models.OneToOneField(
+        Coin,
+        on_delete=models.CASCADE,
+        related_name='live_price'
+    )
+    price = models.DecimalField(max_digits=20, decimal_places=8)
+    currency = models.CharField(max_length=10, default='USD')
+    last_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('coin', 'currency')
+
+    def __str__(self):
+        return f"{self.coin.symbol} @ {self.price} {self.currency}"
