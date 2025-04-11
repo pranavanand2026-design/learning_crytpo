@@ -99,3 +99,34 @@ class CurrentPrice(models.Model):
 
     def __str__(self):
         return f"{self.coin.symbol} @ {self.price} {self.currency}"
+
+
+# -------------------------
+# PriceCache (historical snapshots)
+# -------------------------
+class PriceCache(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    coin = models.ForeignKey(
+        Coin,
+        on_delete=models.CASCADE,
+        related_name='price_history'
+    )
+    price = models.DecimalField(
+        max_digits=20,
+        decimal_places=8,
+        default=0.0
+    )
+    currency = models.CharField(max_length=10, default='USD')
+    price_date = models.DateTimeField(auto_now_add=True)
+    fetched_at = models.DateTimeField(auto_now_add=True)
+    source = models.CharField(max_length=50, default='coingecko')
+    price_data = models.JSONField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.coin.symbol} @ {self.price} {self.currency} ({self.fetched_at.isoformat()})"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['coin', 'price_date']),
+            models.Index(fields=['fetched_at'])
+        ]
