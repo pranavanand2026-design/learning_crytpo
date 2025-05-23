@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    @apply min-h-screen bg-base-200 text-base-content;
+  }
+
+  body {
+    @apply m-0;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+}
