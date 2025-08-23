@@ -21,41 +21,38 @@ CryptoDash solves these problems by providing a **sandbox environment** where us
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Frontend (React)                        │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐           │
-│  │Dashboard │ │Portfolio │ │Watchlist │ │Simulation│           │
-│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘           │
-│       └────────────┴────────────┴────────────┘                  │
-│                           │                                     │
-│                    Axios HTTP Client                            │
-└───────────────────────────┼─────────────────────────────────────┘
-                            │ HTTPS + JWT
-┌───────────────────────────┼─────────────────────────────────────┐
-│                     Django REST API                             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
-│  │Authentication│  │  Portfolio  │  │  Market Data│             │
-│  │   (JWT)     │  │   Service   │  │   Service   │             │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘             │
-│         │                │                │                     │
-│  ┌──────┴────────────────┴────────────────┴──────┐             │
-│  │              Django ORM + Models              │             │
-│  └───────────────────────┬───────────────────────┘             │
-└──────────────────────────┼──────────────────────────────────────┘
-                           │
-┌──────────────────────────┼──────────────────────────────────────┐
-│                    PostgreSQL Database                          │
-│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐        │
-│  │ Users  │ │ Coins  │ │Holdings│ │Trans-  │ │Simula- │        │
-│  │        │ │        │ │        │ │actions │ │tions   │        │
-│  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘        │
-└─────────────────────────────────────────────────────────────────┘
-                           │
-                    ┌──────┴──────┐
-                    │  CoinGecko  │
-                    │     API     │
-                    └─────────────┘
+```mermaid
+flowchart TB
+    subgraph Frontend["Frontend - React 19 + Vite"]
+        Dashboard[Dashboard]
+        Portfolio[Portfolio]
+        Watchlist[Watchlist]
+        Simulation[Simulation]
+    end
+
+    subgraph API["Django REST API"]
+        Auth[Authentication]
+        PortfolioSvc[Portfolio Service]
+        MarketSvc[Market Data]
+        ORM[Django ORM]
+    end
+
+    subgraph Database["PostgreSQL"]
+        Users[(Users)]
+        Coins[(Coins)]
+        Holdings[(Holdings)]
+        Transactions[(Transactions)]
+        Simulations[(Simulations)]
+    end
+
+    CoinGecko[CoinGecko API]
+
+    Frontend -->|HTTPS + JWT| API
+    Auth --> ORM
+    PortfolioSvc --> ORM
+    MarketSvc --> ORM
+    ORM --> Database
+    MarketSvc -->|REST| CoinGecko
 ```
 
 ## Security & Reliability
@@ -113,8 +110,8 @@ CryptoDash solves these problems by providing a **sandbox environment** where us
 ### Quick Start
 ```bash
 # Clone the repository
-git clone https://github.com/pranavanand2026-design/learning_crytpo.git
-cd learning_crytpo
+git clone https://github.com/pranavanand2026-design/learning_crypto.git
+cd learning_crypto
 
 # Create virtual environment
 python3 -m venv venv
@@ -136,17 +133,21 @@ This will:
 The application is deployed on **Google Cloud Run**, a fully managed serverless platform that automatically scales containers based on traffic.
 
 ### Deployment Architecture
-```
-┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
-│  Cloud Build    │──────│   Cloud Run     │──────│  Cloud SQL      │
-│  (CI/CD)        │      │  (Container)    │      │  (PostgreSQL)   │
-└─────────────────┘      └─────────────────┘      └─────────────────┘
-        │                        │
-        ▼                        ▼
-┌─────────────────┐      ┌─────────────────┐
-│  Container      │      │  Secret Manager │
-│  Registry       │      │  (API Keys)     │
-└─────────────────┘      └─────────────────┘
+```mermaid
+flowchart LR
+    subgraph GCP["Google Cloud Platform"]
+        Build[Cloud Build]
+        Registry[Container Registry]
+        Run[Cloud Run]
+        SQL[(Cloud SQL)]
+        Secrets[Secret Manager]
+    end
+
+    GitHub[GitHub] -->|Push| Build
+    Build -->|Image| Registry
+    Registry -->|Deploy| Run
+    Run <-->|Data| SQL
+    Secrets -->|Inject| Run
 ```
 
 ### Key Deployment Features
