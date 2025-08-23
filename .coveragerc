@@ -1,0 +1,16 @@
+[run]
+branch = True
+source = 
+    FRI-16-19-11
+omit = 
+    */migrations/*
+    */tests/*
+    */__init__.py
+
+[report]
+show_missing = True
+skip_covered = True
+exclude_lines = 
+    pragma: no cover
+    if __name__ == .__main__.
+
