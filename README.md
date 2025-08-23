@@ -1,155 +1,146 @@
-# 📊 CryptoDash
+# CryptoDash
 
-**CryptoDash** is a simplified cryptocurrency learning platform built for beginners who want to practice trading and portfolio management without financial risk. 
- 
-This project was developed as part of **ELEC3609/ELEC9609 — Systems and Database Design** at the University of Sydney.  
+A cryptocurrency portfolio management and trading simulation platform designed for beginners to learn crypto trading without financial risk.
 
----
+## Problem Statement
 
-## 🚀 Project Purpose
-Most cryptocurrency apps are cluttered, risky, and difficult for beginners.  
-CryptoDash provides a **safe, beginner-friendly environment** to:
-- Experiment with trading using simulated portfolios.
-- Track personalized watchlists.
-- View simplified analytics of crypto markets.
-- Learn without risking real money.
+The cryptocurrency market presents significant barriers for newcomers:
 
----
+- **High Risk of Loss**: Beginners often lose money learning to trade with real funds
+- **Complex Interfaces**: Most trading platforms are overwhelming for new users
+- **Information Overload**: Difficult to track portfolios across multiple exchanges
+- **No Safe Practice Environment**: Limited options to practice trading strategies risk-free
 
-## ✨ Core Features
-Based on our **functional requirements**, CryptoDash supports:
+CryptoDash solves these problems by providing a **sandbox environment** where users can:
+- Practice trading with simulated portfolios
+- Track watchlists and monitor market trends
+- Learn trading strategies without risking real money
+- Understand portfolio management fundamentals
 
-1. **User Authentication & Profile Management**  
-   - Register, login, reset password, and edit profile details.  
-   - Guest access for browsing without signing up.
-
-2. **Watchlist Management**  
-   - Add/remove coins.  
-   - Real-time updates every 10 minutes from cached APIs.  
-   - Sorting, searching, and filtering.  
-
-3. **Portfolio Tracking**  
-   - Create one simulated portfolio per user.  
-   - View valuation reports and trends.  
-
-4. **Simulation Management**  
-   - Create, edit, and delete trading simulations.  
-   - Track profit/loss and performance metrics.  
-
-5. **Market Analytics**  
-   - Top 100 crypto list with pagination.  
-   - Coin detail pages with historical charts.  
-   - Comparison and time-based returns.  
-
----
-
-## 🛠️ Tech Stack
-- **Frontend**: React (JS, CSS, HTML)  
-- **Backend**: Django (Python), RESTful APIs, AJAX  
-- **Database**: PostgreSQL (psql)  
-- **Testing**: PyTest (unit tests), Postman (API testing),  
-  E2E/integration, frontend smoke tests  
-
----
-
-## 👥 Team & Roles
-### Development Roles
-- **Backend**: Muhammad Abdullah, Suryansh Shekhawat  
-- **Frontend**: Ellis Mon, Pranav Anand, Elvern Keefe Chen  
-- **Database**: Ellis Mon, Muhammad Abdullah  
-- **Testing**: Suryansh Shekhawat, Elvern Keefe Chen  
-
-### Agile Roles
-- **Scrum Master**: Pranav Anand  
-- **Developers**: Everyone  
-- **Testers**: Everyone  
-
----
-
-## 📧 Authors
-- **Suryansh Shekhawat** (sshe0771)  
-- **Elvern Keefe Chen** (eche8129)  
-- **Muhammad Abdullah** (mabd8755)  
-- **Ellis Mon** (emon0711)  
-- **Pranav Anand** (pana0377)  
-
----
-
-## Environment Setup
-Before running the frontend, create a `.env.local` file in `web_app/frontend`.
-At minimum set `VITE_API_BASE_URL`; optional overrides are shown below:
+## Architecture
 
 ```
-VITE_API_BASE_URL=http://localhost:8000/api
-VITE_RECAPTCHA_SITE_KEY=6Ldu9vMrAAAAABrORQFSF9nsVNiJhxpoR2Jh4q49
+┌─────────────────────────────────────────────────────────────────┐
+│                         Frontend (React)                        │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐           │
+│  │Dashboard │ │Portfolio │ │Watchlist │ │Simulation│           │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘           │
+│       └────────────┴────────────┴────────────┘                  │
+│                           │                                     │
+│                    Axios HTTP Client                            │
+└───────────────────────────┼─────────────────────────────────────┘
+                            │ HTTPS + JWT
+┌───────────────────────────┼─────────────────────────────────────┐
+│                     Django REST API                             │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │Authentication│  │  Portfolio  │  │  Market Data│             │
+│  │   (JWT)     │  │   Service   │  │   Service   │             │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘             │
+│         │                │                │                     │
+│  ┌──────┴────────────────┴────────────────┴──────┐             │
+│  │              Django ORM + Models              │             │
+│  └───────────────────────┬───────────────────────┘             │
+└──────────────────────────┼──────────────────────────────────────┘
+                           │
+┌──────────────────────────┼──────────────────────────────────────┐
+│                    PostgreSQL Database                          │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐        │
+│  │ Users  │ │ Coins  │ │Holdings│ │Trans-  │ │Simula- │        │
+│  │        │ │        │ │        │ │actions │ │tions   │        │
+│  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘        │
+└─────────────────────────────────────────────────────────────────┘
+                           │
+                    ┌──────┴──────┐
+                    │  CoinGecko  │
+                    │     API     │
+                    └─────────────┘
 ```
 
-The backend reads Google reCAPTCHA credentials from environment variables as well:
+## Security & Reliability
 
+### Authentication
+- **JWT Tokens**: Short-lived access tokens (15 min) with rotating refresh tokens (7 days)
+- **Password Hashing**: PBKDF2 with SHA256 (720,000 iterations)
+- **reCAPTCHA v2**: Bot prevention on login and registration
+- **Session Management**: Secure cookie handling with SameSite protection
+
+### Data Protection
+- **CSRF Protection**: Cross-Site Request Forgery prevention on all state-changing operations
+- **CORS Configuration**: Strict origin validation for API requests
+- **Input Validation**: Server-side validation on all user inputs via Django REST Framework serializers
+- **SQL Injection Prevention**: Parameterized queries through Django ORM
+
+### Password Security
+- Minimum 8 characters required
+- Must contain uppercase, lowercase, numbers, and special characters
+- Password similarity check against user attributes
+- Common password dictionary validation
+
+### Infrastructure
+- **HTTPS Only**: SSL/TLS encryption in transit
+- **Environment Variables**: Secrets stored securely, never in code
+- **Cloud Run**: Auto-scaling, managed infrastructure with built-in DDoS protection
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, Vite, Tailwind CSS, DaisyUI |
+| Backend | Django 5.2, Django REST Framework |
+| Database | PostgreSQL (Production), SQLite (Development) |
+| Authentication | JWT (SimpleJWT), Google reCAPTCHA |
+| Market Data | CoinGecko API |
+| Deployment | Google Cloud Run |
+
+## Features
+
+- **Portfolio Management**: Track holdings, view profit/loss, manage positions
+- **Trading Simulation**: Practice buy/sell without real money
+- **Watchlist**: Monitor favorite cryptocurrencies
+- **Market Data**: Real-time prices for top 100 cryptocurrencies
+- **Price Charts**: Historical price visualization
+- **User Preferences**: Customizable currency, timezone, date format
+
+## Local Development
+
+### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- npm
+
+### Quick Start
+```bash
+# Clone the repository
+git clone https://github.com/pranavanand2026-design/learning_crytpo.git
+cd learning_crytpo
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Run the application
+python run.py
 ```
-RECAPTCHA_SITE_KEY=6Ldu9vMrAAAAABrORQFSF9nsVNiJhxpoR2Jh4q49
-RECAPTCHA_PROJECT_ID=crypto-dash-476008
-RECAPTCHA_API_KEY=<google-cloud-api-key>
-RECAPTCHA_MIN_SCORE=0.3
-```
 
-Default values matching the keys above are baked into `config/settings.py`, so teammates
-can clone and run without extra setup. Define your own values to override them in other
-environments.
+This will:
+1. Install Python dependencies
+2. Run database migrations
+3. Install frontend dependencies
+4. Start backend server (http://localhost:8000)
+5. Start frontend dev server (http://localhost:5173)
 
-With these defaults the login form uses reCAPTCHA Enterprise (score-based) via the Assessments API. If you
-later swap to a challenge/checkbox experience, generate the appropriate key type in Google Cloud and update
-the environment variables above—be sure to add your local development domains (`localhost`, `127.0.0.1`, etc.).
+## API Documentation
 
-## Quick Start (Local Dev)
+See [APIDocumentation.md](./APIDocumentation.md) for detailed endpoint specifications.
 
-- Prereqs: Python 3.11+ (3.12 OK), Node 18+.
+## Team
 
-1) Backend
-- Create venv and install deps (uses psycopg2-binary; Postgres not required for dev):
-- macOS/Linux
-  - `python3 -m venv venv`
-  - `source venv/bin/activate`
-  - `python -m pip install -U pip`
-  - `python -m pip install -r requirements.txt`
-- Windows (PowerShell)
-  - `py -m venv venv`
-  - `venv\Scripts\Activate.ps1`
-  - `python -m pip install -U pip`
-  - `python -m pip install -r requirements.txt`
+- **Pranav Anand** - Frontend Development, Scrum Master
+- **Muhammad Abdullah** - Backend Development, Database
+- **Suryansh Shekhawat** - Backend Development, Testing
+- **Ellis Mon** - Frontend Development, Database
+- **Elvern Keefe Chen** - Frontend Development, Testing
 
-- Apply migrations and run server:
-  - `python manage.py migrate`
-  - `python manage.py runserver`
+## License
 
-2) Frontend
-- `cd web_app/frontend`
-- `npm install`
-- `cp .env.local.example .env.local` (or ensure `VITE_API_BASE_URL=http://localhost:8000/api`)
-- `npm run dev`
-
-The app uses relative API calls. During dev, set `VITE_API_BASE_URL` to `http://localhost:8000/api` so the Vite dev server can talk to Django.
-
-## What’s Fixed
-- Watchlist add/remove: creates the FK `Coin` on add to avoid 403/constraint errors; uses CSRF-safe auth for POST/DELETE.
-- Portfolio buy/sell: per-user endpoints at `/api/portfolio/` and `/api/portfolio/sell/` with proper holding updates and transaction logging.
-- Portfolio chart: now shows unrealised P/L and the series is normalised to start at 0 for the selected period, so it reflects movement (delta) over time.
-
-## Common Issues
-- “No module named 'django'” on `manage.py` commands
-  - Cause: `pip install -r requirements.txt` aborted (e.g. building `psycopg2`).
-  - Fix: this repo uses `psycopg2-binary` for dev. Re-run the install commands above in an activated venv and then `python manage.py migrate`.
-
-- “pg_config not found” during pip install
-  - You’re likely installing `psycopg2` instead of `psycopg2-binary`. Ensure you’re using this repo’s `requirements.txt`.
-
-- Accidentally committed `venv/` or build artefacts
-  - `.gitignore` includes `venv/`, `.venv/`, `node_modules/`, and `dist/`. If already committed, remove from git history:
-    - `git rm -r --cached venv node_modules dist`
-    - `git commit -m "chore: stop tracking build/venv"`
-
-## Git Workflow (suggested)
-- Create a branch: `git checkout -b fix/portfolio-watchlist-created-at`
-- Make changes, then: `git add -A && git commit -m "Fix portfolio/watchlist + chart normalisation"`
-- Push: `git push -u origin fix/portfolio-watchlist-created-at`
-- Open a PR; if you’re behind `main`, run: `git fetch origin && git rebase origin/main` (resolve conflicts), then push with `--force-with-lease`.
+This project was developed as part of ELEC3609/ELEC9609 at the University of Sydney.
